@@ -23,14 +23,14 @@ export const COLORS = {
 };
 
 export const CHAINS = [
-  { id: 1, name: 'Ethereum', symbol: 'ETH', color: '#627EEA' },
-  { id: 42161, name: 'Arbitrum', symbol: 'ARB', color: '#28A0F0' },
-  { id: 8453, name: 'Base', symbol: 'BASE', color: '#0052FF' },
-  { id: 10, name: 'Optimism', symbol: 'OP', color: '#FF0420' },
-  { id: 137, name: 'Polygon', symbol: 'MATIC', color: '#8247E5' },
-  { id: 56, name: 'BNB Chain', symbol: 'BNB', color: '#F3BA2F' },
-  { id: 43114, name: 'Avalanche', symbol: 'AVAX', color: '#E84142' },
-  { id: 1151111081099710, name: 'Solana', symbol: 'SOL', color: '#9945FF' },
+  { id: 1, name: 'Ethereum', symbol: 'ETH', color: '#627EEA', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { id: 42161, name: 'Arbitrum', symbol: 'ARB', color: '#28A0F0', logo: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg' },
+  { id: 8453, name: 'Base', symbol: 'BASE', color: '#0052FF', logo: 'https://assets.coingecko.com/coins/images/31017/small/base-logo.png' },
+  { id: 10, name: 'Optimism', symbol: 'OP', color: '#FF0420', logo: 'https://assets.coingecko.com/coins/images/25244/small/Optimism.png' },
+  { id: 137, name: 'Polygon', symbol: 'MATIC', color: '#8247E5', logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png' },
+  { id: 56, name: 'BNB Chain', symbol: 'BNB', color: '#F3BA2F', logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+  { id: 43114, name: 'Avalanche', symbol: 'AVAX', color: '#E84142', logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' },
+  { id: 1151111081099710, name: 'Solana', symbol: 'SOL', color: '#9945FF', logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
 ];
 
 export const FEATURES = [

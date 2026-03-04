@@ -11,19 +11,13 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           <Link
-            href="/"
-            className="text-[#A0A0B0] hover:text-white transition-colors"
-          >
-            Features
-          </Link>
-          <Link
-            href="/"
+            href="#howitworks"
             className="text-[#A0A0B0] hover:text-white transition-colors"
           >
             How it Works
           </Link>
           <Link
-            href="/"
+            href="#supportedchains"
             className="text-[#A0A0B0] hover:text-white transition-colors"
           >
             Supported Chains

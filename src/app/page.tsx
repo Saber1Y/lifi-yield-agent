@@ -3,11 +3,11 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { CHAINS, FEATURES, STEPS } from "@/constants";
-import { 
-  HiOutlineTrendingUp, 
-  HiOutlineSwitchHorizontal, 
-  HiOutlineSparkles, 
-  HiOutlineRefresh 
+import {
+  HiOutlineTrendingUp,
+  HiOutlineSwitchHorizontal,
+  HiOutlineSparkles,
+  HiOutlineRefresh,
 } from "react-icons/hi";
 
 export default function Home() {
@@ -74,24 +74,31 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            id="#howitworks"
+          >
             {FEATURES.map((feature, index) => {
               const IconComponent = {
-                'HiOutlineTrendingUp': HiOutlineTrendingUp,
-                'HiOutlineSwitchHorizontal': HiOutlineSwitchHorizontal,
-                'HiOutlineSparkles': HiOutlineSparkles,
-                'HiOutlineRefresh': HiOutlineRefresh,
+                HiOutlineTrendingUp: HiOutlineTrendingUp,
+                HiOutlineSwitchHorizontal: HiOutlineSwitchHorizontal,
+                HiOutlineSparkles: HiOutlineSparkles,
+                HiOutlineRefresh: HiOutlineRefresh,
               }[feature.icon];
-              
+
               return (
                 <Card key={index} hover className="text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F7C2FF]/20 to-[#5C67FF]/20 mb-4">
-                    {IconComponent && <IconComponent className="w-8 h-8 text-[#F7C2FF]" />}
+                    {IconComponent && (
+                      <IconComponent className="w-8 h-8 text-[#F7C2FF]" />
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-[#A0A0B0]">{feature.description}</p>
+                  <p className="text-sm text-[#A0A0B0]">
+                    {feature.description}
+                  </p>
                 </Card>
               );
             })}
@@ -132,7 +139,7 @@ export default function Home() {
       </section>
 
       {/* Supported Chains */}
-      <section className="py-20 px-6 bg-[#12121A]">
+      <section className="py-20 px-6 bg-[#12121A]" id="supportedchains">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
@@ -149,9 +156,10 @@ export default function Home() {
                 key={chain.id}
                 className="flex items-center gap-3 px-5 py-3 rounded-full bg-[#1A1A24] border border-[#2A2A35] hover:border-[#3A3A48] transition-all"
               >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: chain.color }}
+                <img
+                  src={chain.logo}
+                  alt={chain.name}
+                  className="w-6 h-6 rounded-full"
                 />
                 <span className="text-white font-medium">{chain.name}</span>
                 <span className="text-[#606070] text-sm">({chain.symbol})</span>
@@ -206,7 +214,7 @@ export default function Home() {
             </p>
             <Link href="/chat">
               <Button size="lg" className="glow-pink">
-                Launch Agent Now 🚀
+                Launch Agent Now
               </Button>
             </Link>
           </div>
@@ -217,9 +225,6 @@ export default function Home() {
       <footer className="py-8 px-6 border-t border-[#2A2A35]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center">
-              <span className="text-black font-bold text-sm">LF</span>
-            </div>
             <span className="text-[#606070] text-sm">LI.FI Yield Agent</span>
           </div>
           <div className="text-[#606070] text-sm">

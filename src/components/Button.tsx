@@ -17,9 +17,9 @@ export function Button({
     "inline-flex items-center justify-center font-semibold rounded-full transition-all duration-300 cursor-pointer";
 
   const variants = {
-    primary: ` text-black hover:opacity-90`,
-    secondary: `bg-[${COLORS.background.card}] text-white border border-[${COLORS.border.default}] hover:border-[${COLORS.border.hover}]`,
-    outline: "border border-[#F7C2FF] text-[#F7C2FF] hover:bg-[#F7C2FF]/10",
+    primary: "text-black",
+    secondary: "bg-[#1A1A24] text-white border border-[#2A2A35] hover:border-[#3A3A48]",
+    outline: "border border-[#fab6f5] text-[#fab6f5] hover:bg-[#fab6f5]/10",
   };
 
   const sizes = {
@@ -34,15 +34,17 @@ export function Button({
       style={{
         background:
           variant === "primary"
-            ? `${COLORS.lifi.pink}, ${COLORS.lifi.blue})`
+            ? "#fab6f5"
+            : variant === "secondary"
+            ? COLORS.background.card
             : undefined,
         borderColor:
           variant === "secondary"
             ? COLORS.border.default
             : variant === "outline"
-              ? COLORS.lifi.pink
-              : undefined,
-        color: variant === "outline" ? COLORS.lifi.pink : undefined,
+            ? COLORS.lifi.pink
+            : undefined,
+        color: variant === "outline" ? "#fab6f5" : undefined,
       }}
       {...props}
     >
