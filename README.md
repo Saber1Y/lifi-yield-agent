@@ -36,6 +36,37 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the agent.
 
+## Agent Lily CLI
+
+The repo also includes a non-wallet operator CLI for read and control tasks:
+
+```bash
+# Local usage
+npm run cli -- help
+npm run cli -- status
+npm run cli -- yields
+npm run cli -- report
+npm run cli -- runs --limit 5
+npm run cli -- config get
+npm run cli -- run
+
+# Use with a deployed app
+LILY_BASE_URL=https://your-app.vercel.app \
+LILY_AGENT_TOKEN=your_agent_secret \
+npm run cli -- status
+```
+
+Config updates can be made without a wallet:
+
+```bash
+npm run cli -- config set \
+  --current-chain-id 42161 \
+  --position-usdc 250 \
+  --min-net-gain-usd 15 \
+  --max-route-cost-usd 8 \
+  --telegram-enabled true
+```
+
 ## Project Structure
 
 ```
