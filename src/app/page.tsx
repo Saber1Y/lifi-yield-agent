@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -16,28 +17,79 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto text-center">
+      <section className="relative overflow-hidden pt-32 pb-20 px-6">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#fab6f5]/8 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute top-0 left-1/4 w-px h-48 bg-gradient-to-b from-[#fab6f5]/35 to-transparent" />
+        <div className="pointer-events-none absolute top-0 right-1/4 w-px h-32 bg-gradient-to-b from-[#fab6f5]/20 to-transparent" />
+
+        <div className="pointer-events-none absolute inset-0 hidden lg:block">
+          <Image
+            src="/lily.png"
+            alt="Agent Lily"
+            fill
+            priority
+            className="object-cover object-center opacity-30 scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-l from-[#09090b]/82 via-[#09090b]/38 to-[#09090b]/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/30 to-[#09090b]/62" />
+          <div className="absolute inset-0 bg-[#09090b]/18" />
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#09090b]/80 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#09090b] to-transparent" />
+
+        <div className="pointer-events-none absolute inset-0 lg:hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:64px_64px]" />
+          <Image
+            src="/lily.png"
+            alt="Agent Lily"
+            fill
+            priority
+            className="object-cover object-center opacity-16"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/36 to-[#09090b]/88" />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A1A24] border border-[#2A2A35] mb-8">
             <span className="w-2 h-2 rounded-full bg-[#fab6f5] animate-pulse"></span>
-            <span className="text-sm text-[#A0A0B0]">Powered by LI.FI SDK</span>
+            <span className="text-sm text-[#A0A0B0]">Agent Lily • Powered by LI.FI SDK</span>
           </div>
 
+          {/* <div className="mx-auto mb-8 flex w-fit items-center gap-4 rounded-3xl border border-[#2A2A35] bg-[#111119]/80 px-5 py-4 backdrop-blur">
+            <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-[#2A2A35]">
+              <Image
+                src="/lily.png"
+                alt="Agent Lily portrait"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-semibold text-white">Agent Lily</div>
+              <div className="text-xs text-[#A0A0B0]">
+                Autonomous cross-chain yield strategist
+              </div>
+            </div>
+          </div> */}
+
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            <span className="gradient-text">Yield Rebalancing</span>
+            <span className="gradient-text">Meet Agent Lily</span>
             <br />
-            <span className="text-white">Agent</span>
+            <span className="text-white">Your Cross-Chain Yield Strategist</span>
           </h1>
 
           <p className="text-xl text-[#A0A0B0] max-w-2xl mx-auto mb-10">
-            Autonomous AI agent that monitors USDC yields across 8+ chains and
-            automatically rebalances via LI.FI for maximum returns.
+            A narrative-driven treasury copilot that monitors live USDC yields,
+            explains every move, and rebalances through LI.FI with policy-aware
+            automation.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/chat">
+            <Link href="/dashboard">
               <Button size="lg" className="glow-blue">
-                Try the Agent →
+                Talk to Lily →
               </Button>
             </Link>
             <Button variant="outline" size="lg">
@@ -50,8 +102,8 @@ export default function Home() {
             {[
               { label: "Supported Chains", value: "8+" },
               { label: "Total Volume", value: "$60B+" },
-              { label: "Avg. Yield Difference", value: "~3%" },
-              { label: "Protocols", value: "Aave + Kamino" },
+              { label: "Policy Controls", value: "7" },
+              { label: "Protocols", value: "Aave + LI.FI" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="text-3xl font-bold gradient-text">
@@ -70,7 +122,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
             <p className="text-[#A0A0B0]">
-              Intelligent yield optimization across the multi-chain ecosystem
+              Agent Lily watches the market, explains the route, and acts inside your rules
             </p>
           </div>
 
@@ -111,7 +163,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Get Started in 3 Steps
+              Get Started with Lily
             </h2>
           </div>
 
@@ -146,7 +198,7 @@ export default function Home() {
               Supported Chains
             </h2>
             <p className="text-[#A0A0B0]">
-              Yield tracking across EVM and SVM chains
+              Lily tracks yield opportunities across the multi-chain stack
             </p>
           </div>
 
@@ -156,9 +208,11 @@ export default function Home() {
                 key={chain.id}
                 className="flex items-center gap-3 px-5 py-3 rounded-full bg-[#1A1A24] border border-[#2A2A35] hover:border-[#3A3A48] transition-all"
               >
-                <img
+                <Image
                   src={chain.logo}
                   alt={chain.name}
+                  width={24}
+                  height={24}
                   className="w-6 h-6 rounded-full"
                 />
                 <span className="text-white font-medium">{chain.name}</span>
@@ -206,15 +260,14 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-[#1A1A24] to-[#12121A] rounded-3xl p-12 border border-[#2A2A35]">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Ready to Optimize Your Yields?
+              Ready to Deploy Agent Lily?
             </h2>
             <p className="text-[#A0A0B0] mb-8">
-              Launch the AI agent and let it find the best yield opportunities
-              for you.
+              Launch Lily and let her explain, simulate, and execute your next cross-chain move.
             </p>
-            <Link href="/chat">
+            <Link href="/dashboard">
               <Button size="lg" className="glow-pink">
-                Launch Agent Now
+                Launch Lily Now
               </Button>
             </Link>
           </div>
@@ -225,7 +278,7 @@ export default function Home() {
       <footer className="py-8 px-6 border-t border-[#2A2A35]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[#606070] text-sm">LI.FI Yield Agent</span>
+            <span className="text-[#606070] text-sm">Agent Lily</span>
           </div>
           <div className="text-[#606070] text-sm">
             Built for LI.FI Vibeathon 2026
