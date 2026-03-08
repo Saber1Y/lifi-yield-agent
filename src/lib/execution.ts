@@ -6,7 +6,8 @@ import {
   getQuote,
   type RouteExtended,
 } from "@lifi/sdk";
-import type { Client } from "viem";
+import type { Client, PublicClient } from "viem";
+import { createPublicClient, http } from "viem";
 
 import { YieldAgent } from "./agent";
 import {
@@ -37,6 +38,91 @@ export function canExecuteWithWallet(
     return true;
   } catch {
     return false;
+  }
+}
+
+const ERC20_BALANCE_OF_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
+const CHAIN_RPC: Record<number, string> = {
+  1: "https://eth.drpc.org",
+  10: "https://optimism.drpc.org",
+  137: "https://polygon.drpc.org",
+  42161: "https://arbitrum.drpc.org",
+  8453: "https://base.drpc.org",
+  43114: "https://avax.drpc.org",
+};
+
+export interface BalanceCheck {
+  hasBalance: boolean;
+  balance: string;
+  required: string;
+  chainName: string;
+}
+
+export async function checkUsdcBalance(
+  walletAddress: string,
+  chainId: number,
+  amount: string,
+): Promise<BalanceCheck> {
+  const usdcAddress = USDC_ADDRESSES[chainId];
+  const rpc = CHAIN_RPC[chainId];
+
+  if (!usdcAddress || !rpc) {
+    return {
+      hasBalance: false,
+      balance: "0",
+      required: amount,
+      chainName: `Chain ${chainId}`,
+    };
+  }
+
+  try {
+    const client = createPublicClient({
+      chain: { id: chainId, name: `Chain ${chainId}`, nativeCurrency: { name: "Native", symbol: "NATIVE", decimals: 18 }, rpcUrls: { default: { http: [rpc] } } },
+      transport: http(rpc, { timeout: 10000 }),
+    });
+
+    const balance = (await client.readContract({
+      address: usdcAddress as `0x${string}`,
+      abi: ERC20_BALANCE_OF_ABI,
+      functionName: "balanceOf",
+      args: [walletAddress as `0x${string}`],
+    })) as bigint;
+
+    const required = BigInt(toUsdcBaseUnits(amount));
+    const hasBalance = balance >= required;
+
+    const chainNames: Record<number, string> = {
+      1: "Ethereum",
+      10: "Optimism",
+      137: "Polygon",
+      42161: "Arbitrum",
+      8453: "Base",
+      43114: "Avalanche",
+    };
+
+    return {
+      hasBalance,
+      balance: (Number(balance) / 1e6).toFixed(2),
+      required: amount,
+      chainName: chainNames[chainId] || `Chain ${chainId}`,
+    };
+  } catch (error) {
+    console.error("Balance check failed:", error);
+    return {
+      hasBalance: false,
+      balance: "error",
+      required: amount,
+      chainName: `Chain ${chainId}`,
+    };
   }
 }
 
@@ -107,6 +193,18 @@ async function executeBridge(params: {
     throw new Error("USDC bridging is not configured for one of the selected chains.");
   }
 
+  const balanceCheck = await checkUsdcBalance(
+    params.wallet.address!,
+    params.fromChainId,
+    params.amount,
+  );
+
+  if (!balanceCheck.hasBalance) {
+    throw new Error(
+      `Insufficient USDC balance on ${balanceCheck.chainName}. You have ${balanceCheck.balance} USDC but need ${balanceCheck.required} USDC. Please switch to ${balanceCheck.chainName} network or fund your wallet.`,
+    );
+  }
+
   const route = await buildExecutableRoute({
     wallet: params.wallet,
     fromChainId: params.fromChainId,
@@ -135,6 +233,19 @@ async function executeRebalance(params: {
   }
 
   const recommendation = decision.recommendation;
+
+  const balanceCheck = await checkUsdcBalance(
+    params.wallet.address!,
+    recommendation.fromChain!,
+    params.amount,
+  );
+
+  if (!balanceCheck.hasBalance) {
+    throw new Error(
+      `Insufficient USDC balance on ${balanceCheck.chainName}. You have ${balanceCheck.balance} USDC but need ${balanceCheck.required} USDC. Please switch to ${balanceCheck.chainName} network or fund your wallet.`,
+    );
+  }
+
   const route = await buildExecutableRoute({
     wallet: params.wallet,
     fromChainId: recommendation.fromChain!,

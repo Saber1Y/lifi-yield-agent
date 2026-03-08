@@ -87,6 +87,7 @@ function DashboardChatContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState("Thinking...");
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
+  const [walletChainId, setWalletChainId] = useState<number | undefined>();
   const [wallet, setWallet] = useState<ExecutableWallet | null>(null);
   const [chats, setChats] = useState<ChatHistory[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -123,9 +124,10 @@ function DashboardChatContent() {
     }
   }, []);
 
-  const handleWalletChange = useCallback((params: { address?: string; wallet: unknown }) => {
-    const { address, wallet } = params as { address?: string; wallet: { address: string; connector: unknown } | null };
+  const handleWalletChange = useCallback((params: { address?: string; wallet: unknown; chainId?: number }) => {
+    const { address, wallet, chainId } = params as { address?: string; wallet: { address: string; connector: unknown } | null; chainId?: number };
     setWalletAddress(address);
+    setWalletChainId(chainId);
     if (!wallet) {
       setWallet(null);
       return;
@@ -175,7 +177,7 @@ function DashboardChatContent() {
           description: "Approve in wallet and track the result in this chat.",
         });
       } else {
-        response = await getChatResponse(commandValue, { walletAddress });
+        response = await getChatResponse(commandValue, { walletAddress, walletChainId });
         actionCommand = getActionCommand(commandValue, response);
       }
     } catch (error) {

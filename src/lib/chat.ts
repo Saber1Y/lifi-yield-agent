@@ -6,6 +6,7 @@ import {
   getSupportedChains,
   toUsdcBaseUnits,
 } from "./lifi";
+import { checkUsdcBalance } from "./execution";
 import { fetchYields } from "./yields";
 
 const CHAIN_KEYWORDS = [
@@ -25,6 +26,7 @@ const DEFAULT_AMOUNT = "100";
 
 interface ChatResponseOptions {
   walletAddress?: string;
+  walletChainId?: number;
 }
 
 export async function getChatResponse(
@@ -35,6 +37,10 @@ export async function getChatResponse(
 
   if (lowerInput.includes("chains") || lowerInput.includes("supported")) {
     return getChainsInfo();
+  }
+
+  if (lowerInput.includes("balance")) {
+    return handleBalanceRequest(lowerInput, options.walletAddress, options.walletChainId);
   }
 
   if (lowerInput.includes("bridge") || lowerInput.includes("swap")) {
@@ -59,7 +65,38 @@ export async function getChatResponse(
     `- "check yields"`,
     `- "rebalance from arbitrum"`,
     `- "bridge 250 usdc from optimism to base"`,
+    `- "check balance on arbitrum"`,
     `- "supported chains"`,
+  ].join("\n");
+}
+
+async function handleBalanceRequest(
+  input: string,
+  walletAddress?: string,
+  walletChainId?: number,
+): Promise<string> {
+  if (!walletAddress) {
+    return "Connect your wallet first to check your USDC balance.";
+  }
+
+  const chainId = extractFirstChain(input) ?? walletChainId ?? 42161;
+  const balanceCheck = await checkUsdcBalance(walletAddress, chainId, "1");
+
+  const chainNames: Record<number, string> = {
+    1: "Ethereum",
+    10: "Optimism",
+    137: "Polygon",
+    42161: "Arbitrum",
+    8453: "Base",
+    43114: "Avalanche",
+  };
+
+  return [
+    `USDC Balance on ${balanceCheck.chainName}`,
+    `Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`,
+    `Balance: ${balanceCheck.balance} USDC`,
+    "",
+    `To check balance on another chain, try "check balance on polygon" or "balance on base"`,
   ].join("\n");
 }
 
