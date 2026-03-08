@@ -8,6 +8,10 @@ import { ReactNode } from 'react';
 export function Providers({ children }: { children: ReactNode }) {
   const environmentId = process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID || '';
 
+  if (!environmentId) {
+    return <>{children}</>;
+  }
+
   return (
     <DynamicContextProvider
       settings={{

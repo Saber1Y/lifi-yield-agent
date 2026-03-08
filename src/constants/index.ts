@@ -25,7 +25,7 @@ export const COLORS = {
 export const CHAINS = [
   { id: 1, name: 'Ethereum', symbol: 'ETH', color: '#627EEA', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
   { id: 42161, name: 'Arbitrum', symbol: 'ARB', color: '#28A0F0', logo: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg' },
-  { id: 8453, name: 'Base', symbol: 'BASE', color: '#0052FF', logo: 'https://assets.coingecko.com/coins/images/31017/small/base-logo.png' },
+  { id: 8453, name: 'Base', symbol: 'BASE', color: '#0052FF', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgDoYGJ7Vai-DIk-xXlSfPu2XwJhzSig_BpQ&s' },
   { id: 10, name: 'Optimism', symbol: 'OP', color: '#FF0420', logo: 'https://assets.coingecko.com/coins/images/25244/small/Optimism.png' },
   { id: 137, name: 'Polygon', symbol: 'MATIC', color: '#8247E5', logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png' },
   { id: 56, name: 'BNB Chain', symbol: 'BNB', color: '#F3BA2F', logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
@@ -36,40 +36,40 @@ export const CHAINS = [
 export const FEATURES = [
   {
     icon: 'HiOutlineTrendingUp',
-    title: 'Yield Monitor',
-    description: 'Real-time APY tracking across 8+ chains via AaveScan & Kamino',
+    title: 'Live Yield Radar',
+    description: 'Track live Aave USDC opportunities across Lily’s supported cross-chain universe.',
   },
   {
     icon: 'HiOutlineSwitchHorizontal',
-    title: 'Cross-Chain Bridge',
-    description: 'Seamless bridging powered by LI.FI SDK across 60+ chains',
+    title: 'LI.FI Route Engine',
+    description: 'Quote and execute cross-chain USDC moves through LI.FI with wallet-aware routing.',
   },
   {
     icon: 'HiOutlineSparkles',
-    title: 'AI-Powered',
-    description: 'Autonomous decision making to maximize your yields',
+    title: 'Policy + AI Reasoning',
+    description: 'Blend deterministic treasury rules with Gemini reasoning for explainable decisions.',
   },
   {
     icon: 'HiOutlineRefresh',
-    title: 'Auto Rebalance',
-    description: '24/7 automated portfolio rebalancing based on yield shifts',
+    title: 'Operator Workflow',
+    description: 'Use approvals, reports, Telegram alerts, and CLI access from one control plane.',
   },
 ];
 
 export const STEPS = [
   {
     number: '01',
-    title: 'Connect Wallet',
-    description: 'Link your wallet to let the agent manage your USDC positions',
+    title: 'Open The Dashboard',
+    description: 'Start from Lily’s dashboard to review approvals, reports, chat, and operator status.',
   },
   {
     number: '02',
-    title: 'AI Analysis',
-    description: 'Agent fetches real-time yields from Aave & Kamino across all chains',
+    title: 'Review The Opportunity',
+    description: 'Lily compares cross-chain yields, estimates route cost, and explains the tradeoff.',
   },
   {
     number: '03',
-    title: 'Bridge & Earn',
-    description: 'Execute cross-chain transfers via LI.FI to highest yield destination',
+    title: 'Execute Or Automate',
+    description: 'Approve in chat with your wallet, or run the same workflow through automation and CLI.',
   },
 ];

@@ -25,6 +25,16 @@ body {
   font-family: var(--font-sora), system-ui, sans-serif;
 }
 
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-y: scroll;
+}
+
 .gradient-text {
   color: #fab6f5;
 }
