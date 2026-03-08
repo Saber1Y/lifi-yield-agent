@@ -1,18 +1,16 @@
+import {
+  GoogleGenAI,
+  HarmBlockThreshold,
+  HarmCategory,
+  type SafetySetting,
+} from "@google/genai";
+
 import type { AgentDecision } from "./agent";
 
-interface GeminiPart {
-  text?: string;
-}
-
-interface GeminiCandidate {
-  content?: {
-    parts?: GeminiPart[];
-  };
-}
-
-interface GeminiResponse {
-  candidates?: GeminiCandidate[];
-}
+const DEFAULT_MODEL = "gemini-2.5-flash";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;
+const REQUEST_TIMEOUT_MS = 30000;
 
 export interface StrategyReasoning {
   summary: string;
@@ -22,39 +20,183 @@ export interface StrategyReasoning {
   confidence: number;
 }
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
-const REASONING_TIMEOUT_MS = 8000;
+function getGeminiApiKeys() {
+  const keys: string[] = [];
 
-export async function generateStrategyReasoning(
-  decision: AgentDecision,
-): Promise<StrategyReasoning | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return null;
+  if (process.env.GEMINI_API_KEY) {
+    keys.push(process.env.GEMINI_API_KEY);
   }
 
-  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
-  const prompt = buildPrompt(decision);
+  for (let index = 1; index <= 10; index += 1) {
+    const key = process.env[`GEMINI_API_KEY_${index}`];
+    if (key) {
+      keys.push(key);
+    }
+  }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      signal: AbortSignal.timeout(REASONING_TIMEOUT_MS),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-        "x-goog-api-client": "lifi-yield-agent/0.1.0",
-      },
-      body: JSON.stringify({
+  return keys;
+}
+
+class GeminiReasoningService {
+  private apiKeys: string[] = [];
+  private currentKeyIndex = -1;
+  private client: GoogleGenAI | null = null;
+
+  private initialize() {
+    if (this.apiKeys.length > 0) {
+      return;
+    }
+
+    this.apiKeys = getGeminiApiKeys();
+    if (!this.apiKeys.length) {
+      return;
+    }
+
+    this.rotateClient();
+  }
+
+  private rotateClient() {
+    if (!this.apiKeys.length) {
+      this.client = null;
+      return;
+    }
+
+    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
+    this.client = new GoogleGenAI({
+      apiKey: this.apiKeys[this.currentKeyIndex],
+    });
+  }
+
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+    return Promise.race<T>([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error("Request timeout")), timeoutMs),
+      ),
+    ]);
+  }
+
+  private async withRetry<T>(operation: () => Promise<T>, attempt = 0): Promise<T> {
+    try {
+      return await this.withTimeout(operation(), REQUEST_TIMEOUT_MS);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : String(error || "Unknown error");
+      const retryableErrors = [
+        "429",
+        "503",
+        "timeout",
+        "network",
+        "econnreset",
+        "etimedout",
+        "rate limit",
+        "overloaded",
+        "empty_thought_response",
+      ];
+
+      const isRetryable =
+        attempt < MAX_RETRIES &&
+        retryableErrors.some((code) =>
+          message.toLowerCase().includes(code.toLowerCase()),
+        );
+
+      if (!isRetryable) {
+        throw error;
+      }
+
+      this.rotateClient();
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      return this.withRetry(operation, attempt + 1);
+    }
+  }
+
+  private getSafetySettings() {
+    const threshold =
+      resolveSafetyThreshold(process.env.GEMINI_SAFETY_THRESHOLD) ||
+      HarmBlockThreshold.BLOCK_ONLY_HIGH;
+    return [
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold },
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold },
+    ] satisfies SafetySetting[];
+  }
+
+  private getText(result: unknown) {
+    try {
+      const response = (result as { response?: unknown }).response ?? result;
+      const candidate = (
+        response as {
+          candidates?: Array<{
+            content?: {
+              parts?: Array<{ thought?: boolean; text?: string }>;
+            };
+          }>;
+          text?: string | (() => string);
+        }
+      ).candidates?.[0];
+
+      const rawText =
+        candidate?.content?.parts
+          ?.filter((part) => !part.thought && part.text)
+          .map((part) => part.text)
+          .join("")
+          .trim() || "";
+
+      if (rawText) {
+        return rawText;
+      }
+
+      if (typeof (response as { text?: unknown }).text === "function") {
+        return ((response as { text: () => string }).text() || "").trim() || null;
+      }
+
+      if (typeof (response as { text?: unknown }).text === "string") {
+        return ((response as { text: string }).text || "").trim() || null;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private getThoughtTokenCount(result: unknown) {
+    const response = (result as { response?: unknown }).response ?? result;
+    const usage = (
+      response as {
+        usageMetadata?: {
+          thoughtsTokenCount?: number;
+          getThoughtsTokenCount?: () => number;
+        };
+      }
+    ).usageMetadata;
+
+    return (
+      usage?.getThoughtsTokenCount?.() ??
+      usage?.thoughtsTokenCount ??
+      0
+    );
+  }
+
+  async generateStrategyReasoning(decision: AgentDecision) {
+    this.initialize();
+
+    if (!this.client) {
+      return null;
+    }
+
+    const operation = async () => {
+      const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+      const result = await this.client!.models.generateContent({
+        model,
         contents: [
           {
             role: "user",
-            parts: [{ text: prompt }],
+            parts: [{ text: buildPrompt(decision) }],
           },
         ],
-        generationConfig: {
+        config: {
           temperature: 0.2,
           responseMimeType: "application/json",
           responseSchema: {
@@ -70,9 +212,7 @@ export async function generateStrategyReasoning(
                 type: "string",
                 enum: ["hold", "rebalance"],
               },
-              confidence: {
-                type: "number",
-              },
+              confidence: { type: "number" },
             },
             required: [
               "summary",
@@ -82,24 +222,35 @@ export async function generateStrategyReasoning(
               "confidence",
             ],
           },
+          safetySettings: this.getSafetySettings(),
         },
-      }),
-    },
-  );
+      });
 
-  if (!response.ok) {
-    throw new Error(`Gemini reasoning failed with status ${response.status}.`);
+      const text = this.getText(result);
+      const thoughtTokens = this.getThoughtTokenCount(result);
+
+      if (!text && thoughtTokens > 0) {
+        throw new Error("empty_thought_response");
+      }
+
+      if (!text) {
+        throw new Error("Could not extract text from Gemini response");
+      }
+
+      const parsed = JSON.parse(stripCodeFence(text)) as StrategyReasoning;
+      return sanitizeReasoning(parsed);
+    };
+
+    return this.withRetry(operation);
   }
+}
 
-  const payload = (await response.json()) as GeminiResponse;
-  const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
+const geminiReasoningService = new GeminiReasoningService();
 
-  if (!text) {
-    throw new Error("Gemini reasoning returned no text payload.");
-  }
-
-  const parsed = JSON.parse(text) as StrategyReasoning;
-  return sanitizeReasoning(parsed);
+export async function generateStrategyReasoning(
+  decision: AgentDecision,
+): Promise<StrategyReasoning | null> {
+  return geminiReasoningService.generateStrategyReasoning(decision);
 }
 
 function buildPrompt(decision: AgentDecision): string {
@@ -137,6 +288,37 @@ function buildPrompt(decision: AgentDecision): string {
     '- actionBias: "hold" or "rebalance"',
     "- confidence: number from 0 to 1",
   ].join("\n");
+}
+
+function stripCodeFence(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("```")) {
+    return trimmed;
+  }
+
+  return trimmed
+    .replace(/^```(?:json)?\n?/, "")
+    .replace(/\n?```$/, "")
+    .trim();
+}
+
+function resolveSafetyThreshold(value: string | undefined) {
+  switch (value) {
+    case HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED:
+      return HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED;
+    case HarmBlockThreshold.BLOCK_LOW_AND_ABOVE:
+      return HarmBlockThreshold.BLOCK_LOW_AND_ABOVE;
+    case HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE:
+      return HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE;
+    case HarmBlockThreshold.BLOCK_ONLY_HIGH:
+      return HarmBlockThreshold.BLOCK_ONLY_HIGH;
+    case HarmBlockThreshold.BLOCK_NONE:
+      return HarmBlockThreshold.BLOCK_NONE;
+    case HarmBlockThreshold.OFF:
+      return HarmBlockThreshold.OFF;
+    default:
+      return null;
+  }
 }
 
 function sanitizeReasoning(value: StrategyReasoning): StrategyReasoning {
