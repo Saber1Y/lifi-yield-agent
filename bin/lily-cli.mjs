@@ -4,7 +4,29 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-const HELP_TEXT = `Agent Lily CLI
+const COLORS = {
+  reset: "\x1b[0m",
+  pink: "\x1b[38;2;247;194;255m",
+  blue: "\x1b[38;2;92;103;255m",
+  white: "\x1b[97m",
+  muted: "\x1b[38;2;160;160;176m",
+  dim: "\x1b[38;2;96;96;112m",
+};
+
+const ASCII_LILY = [
+  "                .-''''-.",
+  "             .-'  .-.   '-.",
+  "           .'    /   \\     '.",
+  "          /     | 0 0 |      \\",
+  "         ;      |  ^  |       ;",
+  "         |       \\_-_/        |",
+  "         ;     .-`---'-.      ;",
+  "          \\   /  LILY   \\    /",
+  "           '.|  operator |.'",
+  "             '-.______.-'",
+];
+
+const HELP_TEXT = `${color("Agent Lily CLI", "pink")}
 
 Usage:
   lily help
@@ -50,6 +72,8 @@ async function main() {
       "http://127.0.0.1:3000",
   );
   const token = args.token || process.env.LILY_AGENT_TOKEN || storedConfig.token || "";
+
+  printBanner();
 
   if (!command || command === "help" || command === "--help" || command === "-h") {
     console.log(HELP_TEXT);
@@ -183,25 +207,25 @@ async function printStatus(baseUrl, token) {
   const config = configPayload.config || {};
   const report = reportPayload.report || {};
 
-  console.log("Agent Lily Status");
-  console.log(`Base URL: ${baseUrl}`);
-  console.log(`Current chain: ${config.currentChainId ?? "n/a"}`);
-  console.log(`Position USDC: ${config.positionUsdc ?? "n/a"}`);
-  console.log(`Auto execution: ${Boolean(config.autoRebalanceEnabled)}`);
-  console.log(`Telegram: ${Boolean(config.telegramEnabled) ? "enabled" : "disabled"}`);
-  console.log(`Runs: ${report.sampleSize ?? 0}`);
-  console.log(`Executed: ${report.executed ?? 0}`);
-  console.log(`Projected net annual gain: $${Number(report.projectedNetAnnualGainUsd || 0).toFixed(2)}`);
-  console.log(`Latest run: ${report.latestRun?.message || "n/a"}`);
+  console.log(color("Agent Lily Status", "pink"));
+  console.log(`${label("Base URL")} ${baseUrl}`);
+  console.log(`${label("Current chain")} ${config.currentChainId ?? "n/a"}`);
+  console.log(`${label("Position USDC")} ${config.positionUsdc ?? "n/a"}`);
+  console.log(`${label("Auto execution")} ${Boolean(config.autoRebalanceEnabled)}`);
+  console.log(`${label("Telegram")} ${Boolean(config.telegramEnabled) ? "enabled" : "disabled"}`);
+  console.log(`${label("Runs")} ${report.sampleSize ?? 0}`);
+  console.log(`${label("Executed")} ${report.executed ?? 0}`);
+  console.log(`${label("Projected net annual gain")} $${Number(report.projectedNetAnnualGainUsd || 0).toFixed(2)}`);
+  console.log(`${label("Latest run")} ${report.latestRun?.message || "n/a"}`);
 }
 
 async function printYields(baseUrl, token) {
   const payload = await apiRequest(baseUrl, token, "/api/agent/yields");
   const yields = Object.values(payload.yields || {}).sort((left, right) => right.supplyApr - left.supplyApr);
 
-  console.log("Aave USDC Yields");
+  console.log(color("Aave USDC Yields", "pink"));
   for (const item of yields) {
-    console.log(`${item.chainName}: ${item.supplyApr.toFixed(2)}% APR | liquidity $${Math.round(item.liquidity).toLocaleString()}`);
+    console.log(`${color(item.chainName, "blue")}: ${item.supplyApr.toFixed(2)}% APR ${color("|", "dim")} liquidity $${Math.round(item.liquidity).toLocaleString()}`);
   }
 }
 
@@ -224,7 +248,7 @@ async function triggerRun(baseUrl, token) {
     method: "POST",
   });
 
-  console.log("Manual run complete");
+  console.log(color("Manual run complete", "pink"));
   console.log(JSON.stringify(payload, null, 2));
 }
 
@@ -255,7 +279,7 @@ async function updateConfig(baseUrl, token, args) {
     body: JSON.stringify(payload),
   });
 
-  console.log("Config updated");
+  console.log(color("Config updated", "pink"));
   console.log(JSON.stringify(response.config || {}, null, 2));
 }
 
@@ -304,7 +328,7 @@ function toNumberList(value) {
 }
 
 function fail(message) {
-  console.error(`Error: ${message}`);
+  console.error(`${color("Error:", "pink")} ${message}`);
   process.exit(1);
 }
 
@@ -334,10 +358,33 @@ function clearCliConfig() {
 }
 
 function printAuthStatus(config, baseUrl) {
-  console.log("Agent Lily CLI Auth");
-  console.log(`Base URL: ${config.baseUrl || baseUrl}`);
-  console.log(`Token: ${config.token ? "stored" : "not set"}`);
-  console.log(`Config path: ${getCliConfigPath()}`);
+  console.log(color("Agent Lily CLI Auth", "pink"));
+  console.log(`${label("Base URL")} ${config.baseUrl || baseUrl}`);
+  console.log(`${label("Token")} ${config.token ? "stored" : "not set"}`);
+  console.log(`${label("Config path")} ${getCliConfigPath()}`);
+}
+
+function printBanner() {
+  if (!process.stdout.isTTY || process.env.LILY_NO_BANNER === "true") {
+    return;
+  }
+
+  const coloredArt = ASCII_LILY.map((line, index) =>
+    color(line, index % 2 === 0 ? "pink" : "blue"),
+  ).join("\n");
+
+  console.log(coloredArt);
+  console.log(
+    `${color("Agent Lily", "pink")} ${color("•", "dim")} ${color("Cross-chain yield operator", "muted")}\n`,
+  );
+}
+
+function label(text) {
+  return `${color(text + ":", "muted")}`;
+}
+
+function color(text, tone) {
+  return `${COLORS[tone] || ""}${text}${COLORS.reset}`;
 }
 
 await main();
