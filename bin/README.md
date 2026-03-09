@@ -1,7 +1,7 @@
 # Agent Lily CLI
 
 <p align="center">
-  <img src="./lily.png" alt="Agent Lily CLI" width="180" />
+  <img src="https://jjlqjzsxzjmkdyofaprn.supabase.co/storage/v1/object/public/image/lily.png" alt="Agent Lily CLI" width="180" />
 </p>
 
 Command-line interface for operating Agent Lily from a terminal.
